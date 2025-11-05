@@ -40,6 +40,13 @@ export class Stickman implements AfterViewInit, OnDestroy {
   gravity = STICKMAN_CONFIGS.gravity;
   stickmanHeight = STICKMAN_CONFIGS.height;
   jumpVelocity = STICKMAN_CONFIGS.jumpVelocity;
+  
+  // Флаг, находится ли персонаж на земле
+  isOnGround = true;
+  // Флаг перетаскивания
+  isDragging = false;
+  // Флаг для отслеживания зажатия пробела
+  private isSpacePressed = false;
 
 
   ngAfterViewInit(): void {
@@ -70,14 +77,48 @@ export class Stickman implements AfterViewInit, OnDestroy {
       this.configStage.height!
     );
 
-    this.animationService.initJumpAnimation(
-      stickmanLayer,
-      this,
-      this.jumpVelocity
-    )
+    // Обработка перетаскивания
+    stickmanNode.on('dragstart', () => {
+      this.isDragging = true;
+    });
+
+    stickmanNode.on('dragend', () => {
+      this.isDragging = false;
+      const sizes = stickmanNode.getClientRect();
+      this.physicalStickman.position.x = sizes.x;
+      this.physicalStickman.position.y = sizes.y;
+      this.physicalStickman.velocity = 0;
+    });
+
+    // Обработка прыжка по нажатию пробела или клику по персонажу
+    window.addEventListener('keydown', this.handleJumpKeyDown);
+    window.addEventListener('keyup', this.handleJumpKeyUp);
+    stickmanNode.on('click', () => this.jump());
+  }
+
+  handleJumpKeyDown = (event: KeyboardEvent): void => {
+    if ((event.code === 'Space' || event.key === ' ') && !this.isSpacePressed) {
+      event.preventDefault();
+      this.isSpacePressed = true;
+      this.jump();
+    }
+  }
+
+  handleJumpKeyUp = (event: KeyboardEvent): void => {
+    if (event.code === 'Space' || event.key === ' ') {
+      event.preventDefault();
+      this.isSpacePressed = false;
+    }
+  }
+
+  jump(): void {
+      this.physicalStickman.velocity = -this.jumpVelocity;
+      this.isOnGround = false;
   }
 
   ngOnDestroy(): void {
     this.animationService.stopAllAnimations();
+    window.removeEventListener('keydown', this.handleJumpKeyDown);
+    window.removeEventListener('keyup', this.handleJumpKeyUp);
   }
 }

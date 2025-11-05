@@ -63,25 +63,6 @@ export class StickmanAnimationService {
     this.limbAnim.start();
   }
 
-  initJumpAnimation(
-    layer: Konva.Layer,
-    component: any,
-    jumpVelocity: number
-  ): void {
-    this.mainAnimation = new Konva.Animation((frame) => {
-      if (component.isDragging || !component.isAnimating) {
-        return true;
-      }
-
-      component.physicalStickman.velocity = -jumpVelocity;
-      component.isAnimating = true;
-
-      return true;
-    }, layer);
-
-    setTimeout(() => this.mainAnimation?.start(), 0);
-  }
-
   initMainAnimation(
     layer: Konva.Layer,
     component: any,
@@ -89,29 +70,39 @@ export class StickmanAnimationService {
     stageHeight: number
   ): void {
     this.mainAnimation = new Konva.Animation((frame) => {
-      if (component.isJumping ) {
+      // Если персонаж перетаскивается, не применяем физику
+      if (component.isDragging) {
         return true;
       }
 
       const dt = frame.timeDiff / 1000;
 
+      // Применяем гравитацию
       component.physicalStickman.velocity += gravity * dt;
       component.physicalStickman.position.y += component.physicalStickman.velocity * dt;
 
-      if (component.physicalStickman.position.y + component.physicalStickman.height > stageHeight) {
-        component.physicalStickman.position.y = stageHeight - component.physicalStickman.height;
-        component.physicalStickman.velocity *= -0.8;
+      // Проверяем столкновение с землей
+      const groundLevel = stageHeight - component.physicalStickman.height;
+      if (component.physicalStickman.position.y >= groundLevel) {
+        component.physicalStickman.position.y = groundLevel;
+        
+        // Если падаем вниз (velocity > 0), обрабатываем приземление
+        if (component.physicalStickman.velocity > 0) {
+          // Добавляем отскок (умножаем на отрицательный коэффициент)
+          component.physicalStickman.velocity *= -0.6;
+          
+          // Если скорость отскока слишком мала, останавливаем персонажа
+          if (Math.abs(component.physicalStickman.velocity) < 10) {
+            component.physicalStickman.velocity = 0;
+            component.isOnGround = true;
+          }
+        }
+      } else {
+        // Если не на земле, сбрасываем флаг
+        component.isOnGround = false;
       }
 
-      if (
-        Math.abs(component.physicalStickman.velocity) <= 5 &&
-        component.physicalStickman.position.y + component.physicalStickman.height >= stageHeight - 5
-      ) {
-        component.physicalStickman.velocity = 0;
-        component.isAnimating = false;
-        return true;
-      }
-
+      // Обновляем позицию узла Konva
       const newX = component.physicalStickman.position.x;
       const newY = component.physicalStickman.position.y;
       const stickmanNode = component.stickmanNode.getNode();

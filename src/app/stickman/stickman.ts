@@ -1,5 +1,12 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, inject, OnDestroy, ViewChild} from '@angular/core';
-import { StageConfig } from 'konva/lib/Stage';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import { CircleConfig } from 'konva/lib/shapes/Circle';
 import { CoreShapeComponent, StageComponent } from 'ng2-konva';
 import { GroupConfig } from 'konva/lib/Group';
@@ -13,20 +20,16 @@ import {StickmanAnimationService} from '../stickman-animation';
   styleUrls: ['./stickman.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [StageComponent, CoreShapeComponent],
+  imports: [CoreShapeComponent],
 })
-export class Stickman implements AfterViewInit, OnDestroy {
-
+export class Stickman implements AfterViewInit,  OnDestroy {
   animationService = inject(StickmanAnimationService);
+  @Input() layer!: any;
   @ViewChild('stickman') stickmanNode!: any;
   @ViewChild('leftArm') leftArmComp!: CoreShapeComponent;
   @ViewChild('rightArm') rightArmComp!: CoreShapeComponent;
 
 
-  configStage: StageConfig = {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
   stickmanHead: CircleConfig = STICKMAN_CONFIGS.head;
   stickmanBody: LineConfig = STICKMAN_CONFIGS.body;
   stickmanLeftArm: LineConfig = STICKMAN_CONFIGS.leftArm;
@@ -40,61 +43,41 @@ export class Stickman implements AfterViewInit, OnDestroy {
   gravity = STICKMAN_CONFIGS.gravity;
   stickmanHeight = STICKMAN_CONFIGS.height;
   jumpVelocity = STICKMAN_CONFIGS.jumpVelocity;
-  
-  // Флаг, находится ли персонаж на земле
-  isOnGround = true;
-  // Флаг перетаскивания
-  isDragging = false;
-  // Флаг для отслеживания зажатия пробела
+
   private isSpacePressed = false;
+  private isInitialized = false;
 
+  initializeSize(): void {
+    if (this.isInitialized) {
+      console.warn('Stickman size already initialized');
+    }
+    const konvaNode = this.stickmanNode?.getNode();
+    if (!konvaNode) {
+      console.log('Cannot initialize stickman size: Konva');
+      return;
+    }
 
-  ngAfterViewInit(): void {
-    if (!this.stickmanNode) return;
-    const stickmanNode = this.stickmanNode.getNode();
-    const stickmanLayer = stickmanNode.getLayer();
-
-    this.animationService.initLimbAnimation(
-      stickmanLayer,
-      this.leftArmComp,
-      this.rightArmComp,
-      this.physicStikmanArm,
-      this.stickmanArmLength
-    );
-
-    const sizes = stickmanNode.getClientRect();
+    const sizes = konvaNode.getClientRect();
     this.physicalStickman.position.x = sizes.x;
     this.physicalStickman.position.y = sizes.y;
     this.physicalStickman.width = sizes.width + this.stickmanConfig.x;
     this.physicalStickman.height = sizes.height + this.stickmanArmLength;
-    console.log(this.physicalStickman);
-    console.log(STICKMAN_CONFIGS.headY + this.stickmanHeight + this.stickmanArmLength);
+    this.isInitialized = true;
 
-    this.animationService.initMainAnimation(
-      stickmanLayer,
-      this,
-      this.gravity,
-      this.configStage.height!
-    );
-
-    // Обработка перетаскивания
-    stickmanNode.on('dragstart', () => {
-      this.isDragging = true;
-    });
-
-    stickmanNode.on('dragend', () => {
-      this.isDragging = false;
-      const sizes = stickmanNode.getClientRect();
-      this.physicalStickman.position.x = sizes.x;
-      this.physicalStickman.position.y = sizes.y;
-      this.physicalStickman.velocity = 0;
-    });
-
-    // Обработка прыжка по нажатию пробела или клику по персонажу
-    window.addEventListener('keydown', this.handleJumpKeyDown);
-    window.addEventListener('keyup', this.handleJumpKeyUp);
-    stickmanNode.on('click', () => this.jump());
   }
+
+  getPhysicalParams(): any {
+    return {
+      physicalStickman: this.physicalStickman,
+      physicalArm: this.physicStikmanArm,
+      armLength: this.stickmanArmLength,
+      gravity: this.gravity,
+      height: this.stickmanHeight,
+      jumpVelocity: this.jumpVelocity,
+    }
+  }
+
+
 
   handleJumpKeyDown = (event: KeyboardEvent): void => {
     if ((event.code === 'Space' || event.key === ' ') && !this.isSpacePressed) {
@@ -113,12 +96,56 @@ export class Stickman implements AfterViewInit, OnDestroy {
 
   jump(): void {
       this.physicalStickman.velocity = -this.jumpVelocity;
-      this.isOnGround = false;
+      console.log('Jump! Velocity set to', this.physicalStickman.velocity);
   }
 
   ngOnDestroy(): void {
+    console.log('Stickman destroyed');
     this.animationService.stopAllAnimations();
     window.removeEventListener('keydown', this.handleJumpKeyDown);
     window.removeEventListener('keyup', this.handleJumpKeyUp);
+  }
+
+  ngAfterViewInit(): void {
+    if (!this.stickmanNode)
+    {
+      console.log('Stickman node not initialized');
+      return;
+    }
+    else {
+      console.log('Stickman node initialized');
+    }
+    const stickmanNode = this.stickmanNode.getNode();
+    const stickmanLayer = this.layer;
+
+    this.animationService.initLimbAnimation(
+      stickmanLayer,
+      this.leftArmComp,
+      this.rightArmComp,
+      this.physicStikmanArm,
+      this.stickmanArmLength
+    );
+
+
+    const sizes = stickmanNode.getClientRect();
+    this.physicalStickman.position.x = sizes.x;
+    this.physicalStickman.position.y = sizes.y;
+    this.physicalStickman.width = sizes.width + this.stickmanConfig.x;
+    this.physicalStickman.height = sizes.height + this.stickmanArmLength;
+    console.log(this.physicalStickman);
+    console.log(STICKMAN_CONFIGS.headY + this.stickmanHeight + this.stickmanArmLength);
+
+    this.layer.getNode().add(stickmanLayer);
+
+    this.animationService.initMainAnimation(
+      stickmanLayer,
+      this,
+      this.gravity,
+      4000
+    );
+
+    window.addEventListener('keydown', this.handleJumpKeyDown);
+    window.addEventListener('keyup', this.handleJumpKeyUp);
+    stickmanNode.on('click', () => this.jump());
   }
 }

@@ -70,39 +70,18 @@ export class StickmanAnimationService {
     stageHeight: number
   ): void {
     this.mainAnimation = new Konva.Animation((frame) => {
-      // Если персонаж перетаскивается, не применяем физику
-      if (component.isDragging) {
-        return true;
-      }
 
       const dt = frame.timeDiff / 1000;
 
-      // Применяем гравитацию
       component.physicalStickman.velocity += gravity * dt;
       component.physicalStickman.position.y += component.physicalStickman.velocity * dt;
 
-      // Проверяем столкновение с землей
       const groundLevel = stageHeight - component.physicalStickman.height;
       if (component.physicalStickman.position.y >= groundLevel) {
         component.physicalStickman.position.y = groundLevel;
-        
-        // Если падаем вниз (velocity > 0), обрабатываем приземление
-        if (component.physicalStickman.velocity > 0) {
-          // Добавляем отскок (умножаем на отрицательный коэффициент)
-          component.physicalStickman.velocity *= -0.6;
-          
-          // Если скорость отскока слишком мала, останавливаем персонажа
-          if (Math.abs(component.physicalStickman.velocity) < 10) {
-            component.physicalStickman.velocity = 0;
-            component.isOnGround = true;
-          }
+        component.physicalStickman.velocity = 0;
         }
-      } else {
-        // Если не на земле, сбрасываем флаг
-        component.isOnGround = false;
-      }
 
-      // Обновляем позицию узла Konva
       const newX = component.physicalStickman.position.x;
       const newY = component.physicalStickman.position.y;
       const stickmanNode = component.stickmanNode.getNode();

@@ -76,11 +76,7 @@ export class StickmanAnimationService {
       component.physicalStickman.velocity += gravity * dt;
       component.physicalStickman.position.y += component.physicalStickman.velocity * dt;
 
-      const groundLevel = stageHeight - component.physicalStickman.height;
-      if (component.physicalStickman.position.y >= groundLevel) {
-        component.physicalStickman.position.y = groundLevel;
-        component.physicalStickman.velocity = 0;
-        }
+      // Удалена автоматическая остановка - проверка границ теперь в app.ts
 
       const newX = component.physicalStickman.position.x;
       const newY = component.physicalStickman.position.y;
@@ -107,5 +103,10 @@ export class StickmanAnimationService {
   stopAllAnimations(): void {
     this.mainAnimation?.stop();
     this.limbAnim?.stop();
+  }
+
+  startAllAnimations(): void {
+    this.mainAnimation?.start();
+    this.limbAnim?.start();
   }
 }

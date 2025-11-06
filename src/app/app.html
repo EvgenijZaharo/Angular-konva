@@ -1,10 +1,24 @@
 
 <ko-stage #stage [config]="configStage">
   <ko-layer #gameLayer>
-  <app-stickman [layer]="gameLayer" />
+    <app-stickman [layer]="gameLayer" [isGameActive]="gameState() === GameState.PLAYING" />
   </ko-layer>
 </ko-stage>
 
+<!-- Счёт -->
+<div class="score-display">
+  Счёт: {{ score() }}
+</div>
 
-
-
+<!-- Game Over экран -->
+@if (gameState() === GameState.GAME_OVER) {
+  <div class="game-over-overlay">
+    <div class="game-over-content">
+      <h1>ИГРА ОКОНЧЕНА</h1>
+      <p class="final-score">Ваш счёт: {{ score() }}</p>
+      <button class="restart-button" (click)="restartGame()">
+        НАЧАТЬ ЗАНОВО
+      </button>
+    </div>
+  </div>
+}

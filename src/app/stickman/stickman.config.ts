@@ -38,6 +38,7 @@ const stickmanBody: LineConfig = {
   strokeWidth: 4,
 };
 
+
 const stickmanLeftArm: LineConfig = {
   points: [physicStikmanArm.shoulder.x, physicStikmanArm.shoulder.y, physicStikmanArm.leftHand.x, physicStikmanArm.leftHand.y],
   stroke: 'black',

@@ -15,10 +15,10 @@ export interface PipePair {
   providedIn: 'root',
 })
 export class PipeService {
-  readonly PIPE_SPEED = 120; // Скорость движения труб влево (пиксели в секунду)
-  readonly PIPE_GAP = STICKMAN_CONFIGS.height;
-  readonly PIPE_WIDTH = 50; // Ширина трубы
-  readonly PIPE_INTERVAL = 5000; // Интервал генерации новых труб (мс)
+  readonly PIPE_SPEED = 120; 
+  readonly PIPE_GAP = STICKMAN_CONFIGS.height + 250;
+  readonly PIPE_WIDTH = 50; 
+  readonly PIPE_INTERVAL = 5000; 
 
   pipes: PipePair[] = [];
   private spawnInterval: any = null;

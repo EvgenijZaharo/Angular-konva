@@ -53,7 +53,7 @@ export class App implements AfterViewInit {
       return;
     }
 
-    this.pipeService.initPipeAnimation(gameLayerNode, this.configStage.width!);
+    this.pipeService.initPipeAnimation(gameLayerNode);
     this.pipeService.startSpawning(stickheight, this.configStage.width!, this.configStage.height!, gameLayerNode);
     this.startGameLoop( stickmanNode);
   }

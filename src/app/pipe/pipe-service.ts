@@ -78,7 +78,7 @@ export class PipeService {
     }
   }
 
-  initPipeAnimation(layer: Konva.Layer): void {
+  initPipeAnimation(layer: Konva.Layer, ): void {
     this.pipeAnimation = new Konva.Animation((frame) => {
       const dt = (frame?.timeDiff ?? 16) / 1000;
       const displacement = this.PIPE_SPEED * dt;

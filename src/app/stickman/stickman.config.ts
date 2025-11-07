@@ -6,7 +6,7 @@ import { LineConfig } from 'konva/lib/shapes/Line';
 const stickmanHeight = 70;
 const stickmanArmLength = 40;
 const GRAVITY = 400;
-const JUMP_VELOCITY = 250;
+const JUMP_VELOCITY = 200;
 
 const stickmanHead: CircleConfig = {
   x: 50,
@@ -21,7 +21,25 @@ const headX = stickmanHead.x!;
 const headRadius = stickmanHead.radius!;
 const headY = stickmanHead.y! + headRadius;
 
-const physicStikmanArm = {
+export interface PhysicArm {
+  leftAngle: number;
+  rightAngle: number;
+  leftDirection: number;
+  rightDirection: number;
+  shoulder: { x: number; y: number };
+  leftHand: { x: number; y: number };
+  rightHand: { x: number; y: number };
+  angularSpeed: number;
+}
+
+export interface PhysicalStickman {
+  position: { x: number; y: number };
+  velocity: number;
+  height: number;
+  width: number;
+}
+
+const physicStikmanArm: PhysicArm = {
   leftAngle: Math.PI / 6,
   rightAngle: -Math.PI / 6,
   leftDirection: -1,
@@ -69,9 +87,9 @@ const stickmanConfig: GroupConfig = {
   draggable: true,
 };
 
-const physicalStickman = {
+const physicalStickman: PhysicalStickman = {
   position: { x: 0, y: 0 },
-  velocity: 15,
+  velocity: 0,
   height: 0,
   width: 0,
 };
@@ -86,9 +104,7 @@ export const STICKMAN_CONFIGS = {
   group: stickmanConfig,
   physicArm: physicStikmanArm,
   physical: physicalStickman,
-  headY,
   arm: stickmanArmLength,
   gravity: GRAVITY,
-  height: stickmanHeight,
   jumpVelocity: JUMP_VELOCITY,
 };

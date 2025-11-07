@@ -2,15 +2,16 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  HostListener,
   inject,
   Input,
   OnDestroy,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
-import { CircleConfig } from 'konva/lib/shapes/Circle';
-import { CoreShapeComponent } from 'ng2-konva';
-import { GroupConfig } from 'konva/lib/Group';
-import { LineConfig } from 'konva/lib/shapes/Line';
+import {CircleConfig} from 'konva/lib/shapes/Circle';
+import {CoreShapeComponent} from 'ng2-konva';
+import {GroupConfig} from 'konva/lib/Group';
+import {LineConfig} from 'konva/lib/shapes/Line';
 import {STICKMAN_CONFIGS} from './stickman.config';
 import {StickmanAnimationService} from '../stickman-animation';
 import Konva from 'konva';
@@ -23,63 +24,61 @@ import Konva from 'konva';
   standalone: true,
   imports: [CoreShapeComponent],
 })
-export class Stickman implements AfterViewInit,  OnDestroy {
+export class Stickman implements AfterViewInit, OnDestroy {
   animationService = inject(StickmanAnimationService);
   @Input() layer!: any;
-  @Input() isGameActive: boolean = true;
-  @ViewChild('stickman') stickmanNode!: any;
-  @ViewChild('leftArm') leftArmComp!: CoreShapeComponent;
-  @ViewChild('rightArm') rightArmComp!: CoreShapeComponent;
+  @Input() isGameActive = true;
+  @ViewChild('stickman', { static: false }) stickmanNode!: any;
+  @ViewChild('leftArm', { static: false }) leftArmComp!: CoreShapeComponent;
+  @ViewChild('rightArm', { static: false }) rightArmComp!: CoreShapeComponent;
 
-  stickmanHead: CircleConfig = STICKMAN_CONFIGS.head;
-  stickmanBody: LineConfig = STICKMAN_CONFIGS.body;
-  stickmanLeftArm: LineConfig = STICKMAN_CONFIGS.leftArm;
-  stickmanRightArm: LineConfig = STICKMAN_CONFIGS.rightArm;
-  stickmanLeftLeg: LineConfig = STICKMAN_CONFIGS.leftLeg;
-  stickmanRightLeg: LineConfig = STICKMAN_CONFIGS.rightLeg;
-  stickmanConfig: GroupConfig = STICKMAN_CONFIGS.group;
-  physicStikmanArm = STICKMAN_CONFIGS.physicArm;
-  physicalStickman = STICKMAN_CONFIGS.physical;
-  stickmanArmLength = STICKMAN_CONFIGS.arm;
-  gravity = STICKMAN_CONFIGS.gravity;
-  stickmanHeight = STICKMAN_CONFIGS.height;
-  jumpVelocity = STICKMAN_CONFIGS.jumpVelocity;
+  protected readonly stickmanBody: LineConfig = STICKMAN_CONFIGS.body;
+  protected readonly stickmanHead: CircleConfig = STICKMAN_CONFIGS.head;
+  protected readonly stickmanLeftArm: LineConfig = STICKMAN_CONFIGS.leftArm;
+  protected readonly stickmanRightArm: LineConfig = STICKMAN_CONFIGS.rightArm;
+  protected readonly stickmanLeftLeg: LineConfig = STICKMAN_CONFIGS.leftLeg;
+  protected readonly stickmanRightLeg: LineConfig = STICKMAN_CONFIGS.rightLeg;
+  protected readonly stickmanConfig: GroupConfig = STICKMAN_CONFIGS.group;
+  protected readonly physicStikmanArm = STICKMAN_CONFIGS.physicArm;
+  protected readonly physicalStickman = STICKMAN_CONFIGS.physical;
+  protected readonly stickmanArmLength :number = STICKMAN_CONFIGS.arm;
+  private readonly _gravity :number = STICKMAN_CONFIGS.gravity;
+  private readonly _jumpVelocity :number = STICKMAN_CONFIGS.jumpVelocity;
 
-  private isSpacePressed = false;
+  private _isSpacePressed:boolean = false;
 
-  handleJumpKeyDown = (event: KeyboardEvent): void => {
-    if ((event.code === 'Space' || event.key === ' ') && !this.isSpacePressed && this.isGameActive) {
+  @HostListener('window:keydown', ['$event'])
+  protected onWindowKeyDown(event: KeyboardEvent): void {
+    if ((event.code === 'Space' || event.key === ' ') && !this._isSpacePressed && this.isGameActive) {
       event.preventDefault();
-      this.isSpacePressed = true;
+      this._isSpacePressed = true;
       this.jump();
     }
   }
 
-  handleJumpKeyUp = (event: KeyboardEvent): void => {
+  @HostListener('window:keyup', ['$event'])
+  protected onWindowKeyUp(event: KeyboardEvent): void {
     if (event.code === 'Space' || event.key === ' ') {
       event.preventDefault();
-      this.isSpacePressed = false;
+      this._isSpacePressed = false;
     }
   }
 
-  jump(): void {
+  protected jump(): void {
     if (!this.isGameActive) {
       return;
     }
-    this.physicalStickman.velocity = -this.jumpVelocity;
+    this.physicalStickman.velocity = -this._jumpVelocity;
     console.log('Jump! Velocity set to', this.physicalStickman.velocity);
   }
 
-  resetPosition(): void {
+  protected resetPosition(): void {
     console.log('Resetting stickman position');
     const stickmanNode = this.stickmanNode?.getNode();
     if (!stickmanNode) {
       return;
     }
-
-
-    this.isSpacePressed = false;
-
+    this._isSpacePressed = false;
     this.physicalStickman.velocity = 0;
     this.physicalStickman.position.x = this.stickmanConfig.x!;
     this.physicalStickman.position.y = this.stickmanConfig.y!;
@@ -93,16 +92,8 @@ export class Stickman implements AfterViewInit,  OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    console.log('Stickman destroyed');
-    this.animationService.stopAllAnimations();
-    window.removeEventListener('keydown', this.handleJumpKeyDown);
-    window.removeEventListener('keyup', this.handleJumpKeyUp);
-  }
-
   ngAfterViewInit(): void {
-    if (!this.stickmanNode)
-    {
+    if (!this.stickmanNode) {
       console.log('Stickman node not initialized');
       return;
     }
@@ -119,7 +110,7 @@ export class Stickman implements AfterViewInit,  OnDestroy {
     );
 
     const sizes = stickmanNode.getClientRect({relativeTo: stickmanNode});
-    var box = new Konva.Rect({
+    const collider = new Konva.Rect({
       x: sizes.x,
       y: sizes.y,
       width: sizes.width,
@@ -127,26 +118,26 @@ export class Stickman implements AfterViewInit,  OnDestroy {
       stroke: 'red',
       strokeWidth: 1,
     });
-    stickmanNode.add(box);
+    stickmanNode.add(collider);
     console.log(sizes);
     this.physicalStickman.position.x = stickmanNode.x();
     this.physicalStickman.position.y = stickmanNode.y();
     this.physicalStickman.width = sizes.width;
     this.physicalStickman.height = sizes.height;
     console.log(this.physicalStickman);
-    console.log(STICKMAN_CONFIGS.headY + this.stickmanHeight + this.stickmanArmLength);
 
     stickmanLayer.add(stickmanNode);
 
     this.animationService.initMainAnimation(
       stickmanLayer,
       this,
-      this.gravity,
-      stickmanLayer.getHeight()
+      this._gravity,
     );
-
-    window.addEventListener('keydown', this.handleJumpKeyDown);
-    window.addEventListener('keyup', this.handleJumpKeyUp);
     stickmanNode.on('click', () => this.jump());
+  }
+
+  ngOnDestroy(): void {
+    console.log('Stickman destroyed');
+    this.animationService.stopAllAnimations();
   }
 }

@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import Konva from 'konva';
 import RectConfig = Konva.RectConfig;
-import {STICKMAN_CONFIGS} from '../stickman/stickman.config';
+
 
 export interface PipePair {
   upper: Konva.Rect;
@@ -15,18 +15,17 @@ export interface PipePair {
   providedIn: 'root',
 })
 export class PipeService {
-  readonly PIPE_SPEED = 120; 
-  readonly PIPE_GAP = STICKMAN_CONFIGS.height + 250;
-  readonly PIPE_WIDTH = 50; 
-  readonly PIPE_INTERVAL = 5000; 
+  readonly PIPE_SPEED = 120;
+  readonly PIPE_WIDTH = 50;
+  readonly PIPE_INTERVAL = 5000;
 
   pipes: PipePair[] = [];
   private spawnInterval: any = null;
   private pipeAnimation: Konva.Animation | null = null;
 
-  generatePipePair(stageWidth: number, stageHeight: number, layer: Konva.Layer): void {
+  generatePipePair(stickmanHeight: number, stageWidth: number, stageHeight: number, layer: Konva.Layer): void {
     const minGapY = 100;
-    const maxGapY = stageHeight - this.PIPE_GAP - 100;
+    const maxGapY = stageHeight - stickmanHeight - 100;
     const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
 
     const upperConfig: RectConfig = {
@@ -41,9 +40,9 @@ export class PipeService {
 
     const lowerConfig: RectConfig = {
       x: stageWidth,
-      y: gapY + this.PIPE_GAP,
+      y: gapY + stickmanHeight,
       width: this.PIPE_WIDTH,
-      height: stageHeight - (gapY + this.PIPE_GAP),
+      height: stageHeight - (gapY + stickmanHeight),
       fill: 'green',
       stroke: 'darkgreen',
       strokeWidth: 3,
@@ -64,13 +63,11 @@ export class PipeService {
     });
   }
 
-  startSpawning(stageWidth: number, stageHeight: number, layer: Konva.Layer): void {
-    // Создаём первую пару труб сразу
-    this.generatePipePair(stageWidth, stageHeight, layer);
+  startSpawning(stickmanHeight: number, stageWidth: number, stageHeight: number, layer: Konva.Layer): void {
+    this.generatePipePair(stickmanHeight, stageWidth, stageHeight, layer);
 
-    // Запускаем интервал для создания новых труб
     this.spawnInterval = setInterval(() => {
-      this.generatePipePair(stageWidth, stageHeight, layer);
+      this.generatePipePair(stickmanHeight, stageWidth, stageHeight, layer);
     }, this.PIPE_INTERVAL);
   }
 
@@ -81,23 +78,20 @@ export class PipeService {
     }
   }
 
-  initPipeAnimation(layer: Konva.Layer, stageWidth: number): void {
+  initPipeAnimation(layer: Konva.Layer): void {
     this.pipeAnimation = new Konva.Animation((frame) => {
       const dt = (frame?.timeDiff ?? 16) / 1000;
       const displacement = this.PIPE_SPEED * dt;
 
-      // Обновляем позицию каждой пары труб
       for (let i = this.pipes.length - 1; i >= 0; i--) {
         const pipe = this.pipes[i];
 
-        // Двигаем трубы влево
         const newX = pipe.upper.x() - displacement;
         pipe.upper.x(newX);
         pipe.lower.x(newX);
         pipe.upperConfig.x = newX;
         pipe.lowerConfig.x = newX;
 
-        // Удаляем трубы, которые вышли за пределы экрана
         if (newX + this.PIPE_WIDTH < 0) {
           pipe.upper.destroy();
           pipe.lower.destroy();
@@ -139,7 +133,6 @@ export class PipeService {
     this.stopSpawning();
     this.pipeAnimation?.stop();
 
-    // Удаляем все трубы
     for (const pipe of this.pipes) {
       pipe.upper.destroy();
       pipe.lower.destroy();

@@ -18,8 +18,8 @@ export class StickmanAnimationService {
   ): void {
     const leftLineNode: any = leftArmComp?.getNode?.() ?? null;
     const rightLineNode: any = rightArmComp?.getNode?.() ?? null;
-    if (!leftLineNode) {
-      console.warn('leftArm Konva node not found');
+    if (!leftLineNode && !rightLineNode) {
+      console.warn(' Konva node not found');
       return;
     }
 
@@ -67,7 +67,6 @@ export class StickmanAnimationService {
     layer: Konva.Layer,
     component: any,
     gravity: number,
-    stageHeight: number
   ): void {
     this.mainAnimation = new Konva.Animation((frame) => {
 
@@ -75,8 +74,6 @@ export class StickmanAnimationService {
 
       component.physicalStickman.velocity += gravity * dt;
       component.physicalStickman.position.y += component.physicalStickman.velocity * dt;
-
-      // Удалена автоматическая остановка - проверка границ теперь в app.ts
 
       const newX = component.physicalStickman.position.x;
       const newY = component.physicalStickman.position.y;
@@ -90,14 +87,6 @@ export class StickmanAnimationService {
     }, layer);
 
     setTimeout(() => this.mainAnimation?.start(), 0);
-  }
-
-  startMainAnimation(): void {
-    this.mainAnimation?.start();
-  }
-
-  stopMainAnimation(): void {
-    this.mainAnimation?.stop();
   }
 
   stopAllAnimations(): void {

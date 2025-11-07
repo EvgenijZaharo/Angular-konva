@@ -15,9 +15,9 @@ export interface PipePair {
   providedIn: 'root',
 })
 export class PipeService {
-  readonly PIPE_SPEED = 120;
+  readonly PIPE_SPEED = 200;
   readonly PIPE_WIDTH = 50;
-  readonly PIPE_INTERVAL = 5000;
+  readonly PIPE_INTERVAL = 1500;
 
   pipes: PipePair[] = [];
   private spawnInterval: any = null;
